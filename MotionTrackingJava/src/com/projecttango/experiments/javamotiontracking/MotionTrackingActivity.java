@@ -26,6 +26,7 @@ import com.google.atap.tangoservice.TangoOutOfDateException;
 import com.google.atap.tangoservice.TangoPoseData;
 import com.google.atap.tangoservice.TangoXyzIjData;
 
+//import android.R;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.pm.PackageInfo;
@@ -38,6 +39,8 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.projecttango.experiments.javamotiontracking.R;
 
 import java.text.DecimalFormat;
 import java.util.ArrayList;
@@ -158,7 +161,7 @@ public class MotionTrackingActivity extends Activity implements View.OnClickList
         mTango.connectListener(framePairs, new OnTangoUpdateListener() {
 
             @Override
-            public void onPoseAvailable(final TangoPoseData pose) {
+            public void onPoseAvailable(final TangoPos.eData pose) {
                 //Make sure to have atomic access to Tango Pose Data so that
                 //render loop doesn't interfere while Pose call back is updating
                 // the data.

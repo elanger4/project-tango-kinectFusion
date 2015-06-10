@@ -18,6 +18,14 @@ package com.projecttango.experiments.quickstartjava;
 
 import java.util.ArrayList;
 
+import android.annotation.SuppressLint;
+import android.app.Activity;
+import android.content.Intent;
+import android.os.Bundle;
+import android.util.Log;
+import android.widget.TextView;
+import android.widget.Toast;
+
 import com.google.atap.tangoservice.Tango;
 import com.google.atap.tangoservice.Tango.OnTangoUpdateListener;
 import com.google.atap.tangoservice.TangoConfig;
@@ -28,19 +36,11 @@ import com.google.atap.tangoservice.TangoOutOfDateException;
 import com.google.atap.tangoservice.TangoPoseData;
 import com.google.atap.tangoservice.TangoXyzIjData;
 import com.projecttango.quickstartjava.R;
-
-import android.annotation.SuppressLint;
-import android.app.Activity;
-import android.content.Intent;
-import android.os.Bundle;
-import android.util.Log;
-import android.widget.TextView;
-import android.widget.Toast;
-
+	
 
 /**
  * Main Activity for the Tango Java Quickstart. Demonstrates establishing a
- * connection to the {@link Tango} service and printing the {@link TangoPose}
+ * connection to the {@link Tango} service and printing the {@link TangoPose} 	
  * data to the LogCat. Also demonstrates Tango lifecycle management through
  * {@link TangoConfig}.
  */

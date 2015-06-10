@@ -3,6 +3,7 @@
 	<name>MotionTrackingJava</name>
 	<comment></comment>
 	<projects>
+		<project>QuickstartJava</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>
