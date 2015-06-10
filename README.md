@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 Project Tango Java API Example Projects
 ===========================================
 Copyright (C) 2014 Google Inc.
@@ -49,3 +50,7 @@ use Github pull requests for this purpose.
 #### The small print
 Contributions made by corporations are covered by a different agreement than
 the one above, the Software Grant and Corporate Contributor License Agreement.
+=======
+# project-tango-kinectFusion
+Im
+>>>>>>> 442117184afc873a6c91ffa907cea0b03cc84d30
