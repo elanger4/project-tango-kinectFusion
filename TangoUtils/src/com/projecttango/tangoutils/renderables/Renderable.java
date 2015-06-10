@@ -47,6 +47,9 @@ public abstract class Renderable {
         Matrix.setIdentityM(mMvpMatrix, 0);
         Matrix.multiplyMM(mMvMatrix, 0, viewMatrix, 0, mModelMatrix, 0);
         Matrix.multiplyMM(mMvpMatrix, 0, projectionMatrix, 0, mMvMatrix, 0);
+        // ^^^ Find a way to update the mMvMatrix for the points once 
+        //     they've been transformed into the correct coordinate system
+     
     }
 
     public float[] getModelMatrix() {

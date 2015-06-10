@@ -113,6 +113,7 @@ public class PointCloudActivity extends Activity implements OnClickListener {
 		// Display the version of Tango Service
 		mServiceVersion = mConfig.getString("tango_service_library_version");
 		mIsTangoServiceConnected = false;
+//		startUIThread();
 	}
 
 	@Override
@@ -267,7 +268,7 @@ public class PointCloudActivity extends Activity implements OnClickListener {
 
 						dataShared.setXyzijCoord(xyzIj.xyz);
 
-						dataShared.updateLastKPointClouds(100 ,xyzIj);
+						dataShared.updateLastKPointClouds(10);
 
 						mRenderer.getPointCloud().UpdatePoints(dataShared.getLastKPointClouds()); // Updates the point-cloud of type FloatBuffer
 						mRenderer.getModelMatCalculator().updatePointCloudModelMatrix( // Recalculates the matrix with the new point-cloud
@@ -307,7 +308,7 @@ public class PointCloudActivity extends Activity implements OnClickListener {
 			public void run() {
 				try {
 					synchronized (depthLock) {
-						float[] currentXyzIj = dataShared.gematrix multiplicationtXyzijCoord();
+						FloatBuffer currentXyzIj = dataShared.getXyzijCoord();
 						TangoPoseData currentPose = dataShared.getPose();
 					}
 
@@ -324,6 +325,7 @@ public class PointCloudActivity extends Activity implements OnClickListener {
 
 	@Override
 	public void onClick(View v) { }
+	/**
 	private void startUIThread() {
         new Thread(new Runnable() {
             final DecimalFormat threeDec = new DecimalFormat("0.000"); 
@@ -336,7 +338,7 @@ public class PointCloudActivity extends Activity implements OnClickListener {
                         // Update the UI with TangoPose information
                         runOnUiThread(new Runnable() {
                             @Override
-                            public void run() {matrix multiplication
+                            public void run() {
                                 synchronized (poseLock) {
                                     if (mPose == null) {
                                         return; 
@@ -384,4 +386,5 @@ public class PointCloudActivity extends Activity implements OnClickListener {
             }
         }).start() ;
     }
+    */
 }

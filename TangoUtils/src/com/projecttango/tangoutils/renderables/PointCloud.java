@@ -76,7 +76,7 @@ public class PointCloud extends Renderable {
 		//	if (mPointCloudBuffer == null) {
 		//		return;
 		//	}
-			int sum = 0;
+		  int sum = 0;
 		  for (int i=0; i < pointCloudFloatBuffers.size(); i++) {
 			  sum+= pointCloudFloatBuffers.get(i).capacity();
 		  }
@@ -87,8 +87,8 @@ public class PointCloud extends Renderable {
 			  mPointCloudBuffer.put(pointCloudFloatBuffers.get(i));
 		  }
 		// Signal the update
-		//	mPointCloudBuffer = pointCloudFloatBuffers.get(0);
 			mUpdateVBO.set(true);
+		// mPointCloudBuffer = pointCloudFloatBuffers.get(0);
 	}
 
 	@Override
@@ -107,7 +107,6 @@ public class PointCloud extends Renderable {
 					totalZ = totalZ + mPointCloudBuffer.get(i + 2);
 				}
 				if (mPointCount != 0)
-					System.out.println("mPOIntCount: " + mPointCount);
 					mAverageZ = totalZ / mPointCount;
 				// Signal the update
 				mUpdateVBO.set(true);

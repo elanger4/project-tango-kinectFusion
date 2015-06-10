@@ -10,8 +10,8 @@ import com.google.atap.tangoservice.TangoXyzIjData;
 import com.projecttango.tangoutils.ModelMatCalculator;
 
 public class SharedData {
-	private float[] currentXyzIjCoord = new float[16];
-	private float[] prevXyzIjCoord;
+	private FloatBuffer currentXyzIjCoord = FloatBuffer.allocate(1000);
+	private FloatBuffer prevXyzIjCoord;
 	private ModelMatCalculator modelMatCalculator = new ModelMatCalculator();
 	private TangoPoseData currentPose = new TangoPoseData();
 	private TangoPoseData universalPose;
@@ -20,18 +20,32 @@ public class SharedData {
 	private ArrayList<TangoPoseData> lastKPose = new ArrayList<TangoPoseData>();
 
 	public void setXyzijCoord(FloatBuffer points) {
-		float [] convertedMatrix = modelMatCalculator.getmStart2mOpengl(currentPose.getRotationAsFloats());
-		//mulitply points by convertedMatrix
-		float[] triples = new float[4];
-	      points.flip();
-	      points.get(triples);
-		Matrix.multiplyMV(currentXyzIjCoord, 0, triples, 0, convertedMatrix, 0);
-
 		prevXyzIjCoord = currentXyzIjCoord;
-		System.out.println("Set currentXyzIjCoord = " + currentXyzIjCoord);
+		float [] convertedArrayMatrix = modelMatCalculator.getmStart2mOpengl(currentPose.getTranslationAsFloats(), currentPose.getRotationAsFloats());
+
+		ArrayList<float[]> triples = new ArrayList<float[]>();
+
+		for(int a=0; a < points.capacity(); a+=3){
+			float[] triple = new float[4];
+			triple[0] = points.get(a);
+			triple[1] = points.get(a+1);
+			triple[2] = points.get(a+2);
+			triple[3] = 1;
+			triples.add(triple);
+		}
+		
+		currentXyzIjCoord = FloatBuffer.allocate(points.capacity()*2);
+		
+		for (int b=0; b<triples.size();b++){
+			float[] temp = new float[4];
+			Matrix.multiplyMV(temp, 0, convertedArrayMatrix, 0, triples.get(b), 0);
+			currentXyzIjCoord.put(temp);
+		}
+
+
 	}
 
-	public float []getXyzijCoord() {
+	public FloatBuffer getXyzijCoord() {
 		return currentXyzIjCoord;
 	}
 
@@ -55,11 +69,11 @@ public class SharedData {
 		System.out.println("Current translation: " + poseData.translation);
 	}
 
-	public void updateLastKPointClouds(int k, TangoXyzIjData xyzIj) {
+	public void updateLastKPointClouds(int k) {
 		if (lastKPointClouds.size() ==  k) {
 			lastKPointClouds.remove(0);
 		}
-		lastKPointClouds.add(xyzIj.xyz);
+		lastKPointClouds.add(getXyzijCoord());
 	}
 
 	public ArrayList<FloatBuffer> getLastKPointClouds() {

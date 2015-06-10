@@ -52,7 +52,7 @@ private float[] mDevice2IMUMatrix = new float[] { 1.0f, 0.0f, 0.0f, 0.0f,
      * @param translation
      *            a three-element array of translation data.
      * @param quaternion
-     *            a four-element array of rotation data.
+     *            a four-element array of rotation data.;
      */
     public void updatePointCloudModelMatrix(float[] translation,
             float[] quaternion) {
@@ -168,7 +168,6 @@ private float[] mDevice2IMUMatrix = new float[] { 1.0f, 0.0f, 0.0f, 0.0f,
     public float[] getModelMatrix() {
         return mModelMatrix;
     }
-
     public float[] getModelMatrixCopy() {
         float[] modelMatCopy = new float[16];
         System.arraycopy(mModelMatrix, 0, modelMatCopy, 0, 16);
@@ -193,7 +192,7 @@ private float[] mDevice2IMUMatrix = new float[] { 1.0f, 0.0f, 0.0f, 0.0f,
                 mModelMatrix[14] };
     }
     
-    public float[] getmStart2mOpengl(float[] quaternion) {
+    public float[] getmStart2mOpengl(float[] translation, float[] quaternion) {
 
         float[] tempMultMatrix = new float[16]; // The tempMultMatrix becomes mOpenGl2IMUMatrix
         Matrix.setIdentityM(tempMultMatrix, 0);
@@ -219,6 +218,10 @@ private float[] mDevice2IMUMatrix = new float[] { 1.0f, 0.0f, 0.0f, 0.0f,
         Matrix.setIdentityM(mPointCloudModelMatrix, 0);
         Matrix.multiplyMM(tempMultMatrix3, 0, quaternionMatrix, 0,
                 tempMultMatrix2, 0); //tempMultMatrix2 changes to tempMultMatrix4
+        mModelMatrix[12] += translation[0];
+        mModelMatrix[13] += translation[2];
+        mModelMatrix[14] += -1f * translation[1];
+
     	return tempMultMatrix3; 
     }
     	

@@ -35,7 +35,7 @@ import com.projecttango.tangoutils.renderables.PointCloud;
  * {@link Grid}. These objects are implemented in the TangoUtils library in the package
  * {@link com.projecttango.tangoutils.renderables}.
  * 
- * This class receives {@link TangoPose} data from the {@link MotionTracking} class and updates the
+ * This class receives {@link TangoPose} data from the {@link MotionTracking} class and 25555updates the
  * model and view matrices of the {@link Renderable} objects appropriately. It also handles the
  * user-selected camera view, which can be 1st person, 3rd person, or top-down.
  * 
