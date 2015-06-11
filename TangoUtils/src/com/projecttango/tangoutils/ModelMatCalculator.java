@@ -120,32 +120,31 @@ private float[] mDevice2IMUMatrix = new float[] { 1.0f, 0.0f, 0.0f, 0.0f,
      *            a four-element array of rotation data.
      */
     public void updateModelMatrix(float[] translation, float[] quaternion) {
+    	float[] tempMultMatrix = new float[16];
+    Matrix.setIdentityM(tempMultMatrix, 0);
+    Matrix.multiplyMM(tempMultMatrix, 0, mColorCamera2IMUMatrix, 0,
+            mOpengl2ColorCameraMatrix, 0);
+    float[] tempInvertMatrix = new float[16];
+    Matrix.setIdentityM(tempInvertMatrix, 0);
+    Matrix.invertM(tempInvertMatrix, 0, mDevice2IMUMatrix, 0);
+    float[] tempMultMatrix2 = new float[16];
+    Matrix.setIdentityM(tempMultMatrix2, 0);
+    Matrix.multiplyMM(tempMultMatrix2, 0, tempInvertMatrix, 0,
+            tempMultMatrix, 0);
 
-        float[] tempMultMatrix = new float[16];
-        Matrix.setIdentityM(tempMultMatrix, 0);
-        Matrix.multiplyMM(tempMultMatrix, 0, mColorCamera2IMUMatrix, 0,
-                mOpengl2ColorCameraMatrix, 0);
-        float[] tempInvertMatrix = new float[16];
-        Matrix.setIdentityM(tempInvertMatrix, 0);
-        Matrix.invertM(tempInvertMatrix, 0, mDevice2IMUMatrix, 0);
-        float[] tempMultMatrix2 = new float[16];
-        Matrix.setIdentityM(tempMultMatrix2, 0);
-        Matrix.multiplyMM(tempMultMatrix2, 0, tempInvertMatrix, 0,
-                tempMultMatrix, 0);
-
-        float[] quaternionMatrix = new float[16];
-        Matrix.setIdentityM(quaternionMatrix, 0);
-        quaternionMatrix = quaternionMatrixOpenGL(quaternion);
-        float[] tempMultMatrix3 = new float[16];
-        Matrix.setIdentityM(tempMultMatrix3, 0);
-        Matrix.setIdentityM(mModelMatrix, 0);
-        Matrix.multiplyMM(tempMultMatrix3, 0, quaternionMatrix, 0,
-                tempMultMatrix2, 0);
-        Matrix.multiplyMM(mModelMatrix, 0, mConversionMatrix, 0,
-                tempMultMatrix3, 0);
-        mModelMatrix[12] += translation[0];
-        mModelMatrix[13] += translation[2];
-        mModelMatrix[14] += -1f * translation[1];
+    float[] quaternionMatrix = new float[16];
+    Matrix.setIdentityM(quaternionMatrix, 0);
+    quaternionMatrix = quaternionMatrixOpenGL(quaternion);
+    float[] tempMultMatrix3 = new float[16];
+    Matrix.setIdentityM(tempMultMatrix3, 0);
+    Matrix.setIdentityM(mModelMatrix, 0);
+    Matrix.multiplyMM(tempMultMatrix3, 0, quaternionMatrix, 0,
+            tempMultMatrix2, 0);
+    Matrix.multiplyMM(mModelMatrix, 0, mConversionMatrix, 0,
+            tempMultMatrix3, 0);
+    mModelMatrix[12] += translation[0];
+    mModelMatrix[13] += translation[2];
+    mModelMatrix[14] += -1f * translation[1];
     }
 
     public void SetDevice2IMUMatrix(float[] translation, float[] quaternion) {
@@ -218,11 +217,13 @@ private float[] mDevice2IMUMatrix = new float[] { 1.0f, 0.0f, 0.0f, 0.0f,
         Matrix.setIdentityM(mPointCloudModelMatrix, 0);
         Matrix.multiplyMM(tempMultMatrix3, 0, quaternionMatrix, 0,
                 tempMultMatrix2, 0); //tempMultMatrix2 changes to tempMultMatrix4
-        mModelMatrix[12] += translation[0];
-        mModelMatrix[13] += translation[2];
-        mModelMatrix[14] += -1f * translation[1];
+        Matrix.multiplyMM(mPointCloudModelMatrix, 0, mConversionMatrix, 0,
+                tempMultMatrix3, 0);
+        mPointCloudModelMatrix[12] += translation[0];
+        mPointCloudModelMatrix[13] += translation[2];
+        mPointCloudModelMatrix[14] += -1f * translation[1];
 
-    	return tempMultMatrix3; 
+        return mPointCloudModelMatrix;
     }
     	
     /**

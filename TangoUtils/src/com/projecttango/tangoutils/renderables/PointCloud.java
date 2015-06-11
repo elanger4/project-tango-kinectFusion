@@ -94,20 +94,29 @@ public class PointCloud extends Renderable {
 	@Override
 	public synchronized void draw(float[] viewMatrix, float[] projectionMatrix) {
 		GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, mVertexVBO);
+		// Allocate space for where to bind these drawable objects
 
 		if (mUpdateVBO.getAndSet(false)) {
 			if (mPointCloudBuffer != null) {
-				mPointCloudBuffer.position(0);
+				mPointCloudBuffer.position(0); // Goes to the beginnning of the buffer
 				// Pass the info to the VBO
 				GLES20.glBufferData(GLES20.GL_ARRAY_BUFFER, mPointCloudBuffer.capacity()
 						* BYTES_PER_FLOAT, mPointCloudBuffer, GLES20.GL_STATIC_DRAW);
+				// We are putting the data into where GL_ARRAY_BUFFER is and it will 
+				// hold the size of mPointCloudBuffer which is where we store the
+				// information from mPointCloudBufer and we will modify that data
+				// once but use it mulitple times for drawing
 				mPointCount = mPointCloudBuffer.capacity() / 3;
+				
+				// How many (x,y,z) points in mPointCloudBuffer
 				float totalZ = 0;
 				for (int i = 0; i < mPointCloudBuffer.capacity() - 3; i = i + 3) {
 					totalZ = totalZ + mPointCloudBuffer.get(i + 2);
 				}
+				// Stores the total length in the Z direction of 
+				// all point in current point cloud?
 				if (mPointCount != 0)
-					mAverageZ = totalZ / mPointCount;
+					mAverageZ = totalZ / mPointCount; //Averages all of them
 				// Signal the update
 				mUpdateVBO.set(true);
 			}
@@ -117,11 +126,11 @@ public class PointCloud extends Renderable {
 		if (mPointCount > 0) {
 
 			GLES20.glUseProgram(mProgram);
-			updateMvpMatrix(viewMatrix, projectionMatrix);
+			updateMvpMatrix(viewMatrix, projectionMatrix); //Update MVPMatrix **** I think this is where fixing is needed
 			GLES20.glVertexAttribPointer(mPosHandle, COORDS_PER_VERTEX, GLES20.GL_FLOAT, false, 0,
 					0);
 			GLES20.glEnableVertexAttribArray(mPosHandle);
-			GLES20.glUniformMatrix4fv(mMVPMatrixHandle, 1, false, getMvpMatrix(), 0);
+			GLES20.glUniformMatrix4fv(mMVPMatrixHandle, 1, false, getMvpMatrix4Model(), 0); // <-- Fix here maybe? 
 			GLES20.glDrawArrays(GLES20.GL_POINTS, 0, mPointCount);
 		}
 		GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, 0);

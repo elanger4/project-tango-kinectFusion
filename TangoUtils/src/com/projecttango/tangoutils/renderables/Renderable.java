@@ -26,7 +26,9 @@ public abstract class Renderable {
 
     private float[] mModelMatrix = new float[16];
     private float[] mMvMatrix = new float[16];
+    private float[] mMvMatrix1 = new float[16];
     private float[] mMvpMatrix = new float[16];
+    private float[] mMvpMatrix4Model = new float[16];
 
     /**
      * Applies the view and projection matrices and draws the Renderable.
@@ -43,15 +45,36 @@ public abstract class Renderable {
             float[] projectionMatrix) {
         // Compose the model, view, and projection matrices into a single mvp
         // matrix
+    	float[] mIdentityMatrix = new float[16];
+        Matrix.setIdentityM(mIdentityMatrix, 0);
+        Matrix.setIdentityM(mMvMatrix, 0);
+        Matrix.setIdentityM(mMvMatrix1, 0);
+        Matrix.setIdentityM(mMvpMatrix, 0);
+        Matrix.setIdentityM(mMvpMatrix4Model, 0);
+        //Matrix.setIdentityM(mModelMatrix, 0);
+        Matrix.multiplyMM(mMvMatrix, 0, viewMatrix, 0, mModelMatrix, 0);
+        Matrix.multiplyMM(mMvMatrix1, 0, viewMatrix, 0, mIdentityMatrix, 0);
+        Matrix.multiplyMM(mMvpMatrix, 0, projectionMatrix, 0, mMvMatrix, 0);
+        Matrix.multiplyMM(mMvpMatrix4Model, 0, projectionMatrix, 0, mMvMatrix1, 0);
+        // ^^^ Find a way to update the mMvMatrix for the points once 
+        //     they've been transformed into the correct coordinate system
+    }
+
+    /**
+    public synchronized void updateMvpMatrix1(float[] viewMatrix,
+            float[] projectionMatrix) {
+        // Compose the model, view, and projection matrices into a single mvp
+        // matrix
         Matrix.setIdentityM(mMvMatrix, 0);
         Matrix.setIdentityM(mMvpMatrix, 0);
+        Matrix.setIdentityM(mModelMatrix, 0);
         Matrix.multiplyMM(mMvMatrix, 0, viewMatrix, 0, mModelMatrix, 0);
         Matrix.multiplyMM(mMvpMatrix, 0, projectionMatrix, 0, mMvMatrix, 0);
         // ^^^ Find a way to update the mMvMatrix for the points once 
         //     they've been transformed into the correct coordinate system
      
     }
-
+    */
     public float[] getModelMatrix() {
         return mModelMatrix;
     }
@@ -66,5 +89,9 @@ public abstract class Renderable {
 
     public float[] getMvpMatrix() {
         return mMvpMatrix;
+    }
+
+    public float[] getMvpMatrix4Model() {
+        return mMvpMatrix4Model;
     }
 }
