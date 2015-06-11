@@ -42,7 +42,7 @@ public class SharedData {
 			Matrix.multiplyMV(temp, 0, convertedArrayMatrix, 0, triples.get(b), 0);
 			temp1[0] = temp[0];
 			temp1[1] = temp[1];
-			temp1[2] = temp[2];
+			temp1[2] = -1f * temp[2];
 			currentXyzIjCoord.put(temp1);
 		}
 
