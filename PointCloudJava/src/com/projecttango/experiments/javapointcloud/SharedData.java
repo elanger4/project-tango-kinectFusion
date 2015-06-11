@@ -34,12 +34,16 @@ public class SharedData {
 			triples.add(triple);
 		}
 		
-		currentXyzIjCoord = FloatBuffer.allocate(points.capacity()*2);
+		currentXyzIjCoord = FloatBuffer.allocate(points.capacity());
 		
 		for (int b=0; b<triples.size();b++){
 			float[] temp = new float[4];
+			float[] temp1 = new float[3];
 			Matrix.multiplyMV(temp, 0, convertedArrayMatrix, 0, triples.get(b), 0);
-			currentXyzIjCoord.put(temp);
+			temp1[0] = temp[0];
+			temp1[1] = temp[1];
+			temp1[2] = temp[2];
+			currentXyzIjCoord.put(temp1);
 		}
 
 
@@ -60,7 +64,6 @@ public class SharedData {
 	}
 
 	public TangoPoseData getPose() {
-		System.out.println("Getting currentPose = " + currentPose);
 		return currentPose;
 	}
 
