@@ -16,16 +16,8 @@
 
 package com.projecttango.experiments.javapointcloud;
 
-import com.google.atap.tangoservice.Tango;
-import com.google.atap.tangoservice.Tango.OnTangoUpdateListener;
-import com.google.atap.tangoservice.TangoConfig;
-import com.google.atap.tangoservice.TangoCoordinateFramePair;
-import com.google.atap.tangoservice.TangoErrorException;
-import com.google.atap.tangoservice.TangoEvent;
-import com.google.atap.tangoservice.TangoInvalidException;
-import com.google.atap.tangoservice.TangoOutOfDateException;
-import com.google.atap.tangoservice.TangoPoseData;
-import com.google.atap.tangoservice.TangoXyzIjData;
+import java.nio.FloatBuffer;
+import java.util.ArrayList;
 
 import android.app.Activity;
 import android.content.Intent;
@@ -37,12 +29,19 @@ import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
-import android.widget.TextView;
 import android.widget.Toast;
 
-import java.nio.FloatBuffer;
-import java.text.DecimalFormat;
-import java.util.ArrayList;
+import com.google.atap.tangoservice.Tango;
+import com.google.atap.tangoservice.Tango.OnTangoUpdateListener;
+import com.google.atap.tangoservice.TangoCameraIntrinsics;
+import com.google.atap.tangoservice.TangoConfig;
+import com.google.atap.tangoservice.TangoCoordinateFramePair;
+import com.google.atap.tangoservice.TangoErrorException;
+import com.google.atap.tangoservice.TangoEvent;
+import com.google.atap.tangoservice.TangoInvalidException;
+import com.google.atap.tangoservice.TangoOutOfDateException;
+import com.google.atap.tangoservice.TangoPoseData;
+import com.google.atap.tangoservice.TangoXyzIjData;
 
 /**
  * Main Activity class for the Point Cloud Sample. Handles the connection to the {@link Tango}
@@ -69,22 +68,13 @@ public class PointCloudActivity extends Activity implements OnClickListener {
 	private String mServiceVersion;
 	private boolean mIsTangoServiceConnected;
 	private TangoPoseData mPose;    
-	private TangoXyzIjData xyzData = new TangoXyzIjData();	//_______________________
 	public static Object poseLock = new Object();
 	public static Object depthLock = new Object();
-	private SharedData dataShared = new SharedData();   //________________________
-	private TextView mDeltaTextView; 
-    private TextView mPoseCountTextView; 
-    private TextView mPoseTextView; 
-    private TextView mQuatTextView; 
-    private TextView mPoseStatusTextView; 
-    private TextView mTangoEventTextView; 
-    private TextView mPointCountTextView; 
-    private TextView mTangoServiceVersionTextView;
-    private TextView mApplicationVersionTextView; 
-    private TextView mAverageZTextView ;
-    private TextView mFrequencyTextView; 
-    private static final int UPDATE_INTERVAL_MS = 100;
+	private SharedData dataShared;
+	private double camCx;
+	private double camCy;
+	private double camFx;
+	private double camFy;
    
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -99,9 +89,27 @@ public class PointCloudActivity extends Activity implements OnClickListener {
 
 		int maxDepthPoints = mConfig.getInt("max_point_cloud_elements");
 		mRenderer = new PCRenderer(maxDepthPoints);
+		dataShared = new SharedData(mRenderer.getModelMatCalculator());   //________________________
 		mGLView = (GLSurfaceView) findViewById(R.id.gl_surface_view);
 		mGLView.setEGLContextClientVersion(2);
 		mGLView.setRenderer(mRenderer);
+
+		/**
+		camCx = camIntrins.cx;
+		camCy = camIntrins.cy;
+		camFx = camIntrins.fx;
+		camFy = camIntrins.fy;
+		
+		System.out.println("camCx" + camCx);
+		System.out.println("camCy" + camCy);
+		System.out.println("camFx" + camFx);
+		System.out.println("camFy" + camFy);
+		
+		System.out.println("width: " + camIntrins.width);
+		dataShared.createCameraTransformMatrix(camCx, camCy, camFx, camFy);
+		dataShared.setDistortion(camIntrins.distortion);
+		dataShared.createScreen(camIntrins.width, camIntrins.height);
+		*/
 
 		PackageInfo packageInfo;
 		try {
@@ -113,7 +121,6 @@ public class PointCloudActivity extends Activity implements OnClickListener {
 		// Display the version of Tango Service
 		mServiceVersion = mConfig.getString("tango_service_library_version");
 		mIsTangoServiceConnected = false;
-//		startUIThread();
 	}
 
 	@Override
@@ -122,7 +129,8 @@ public class PointCloudActivity extends Activity implements OnClickListener {
 		try {
 			mTango.disconnect();
 			mIsTangoServiceConnected = false;
-		} catch (TangoErrorException e) {
+		} catch (TangoErrorException e) {;
+
 			Toast.makeText(getApplicationContext(), R.string.TangoError, Toast.LENGTH_SHORT).show();
 		}
 	}
@@ -163,11 +171,13 @@ public class PointCloudActivity extends Activity implements OnClickListener {
 			} catch (TangoOutOfDateException e) {
 				Toast.makeText(getApplicationContext(), R.string.TangoOutOfDateException,
 						Toast.LENGTH_SHORT).show();
-			} catch (TangoErrorException e) {
+			} catch (TangoErrorException e) {;
+
 				Toast.makeText(getApplicationContext(), R.string.TangoError, Toast.LENGTH_SHORT)
 				.show();
 			}
 			setUpExtrinsics();
+			setUpIntrinsics();
 		}
 	}
 
@@ -179,6 +189,27 @@ public class PointCloudActivity extends Activity implements OnClickListener {
 	@Override
 	public boolean onTouchEvent(MotionEvent event) {
 		return mRenderer.onTouchEvent(event);
+	}
+
+	private void setUpIntrinsics() {
+
+	TangoCameraIntrinsics camIntrins = mTango.getCameraIntrinsics(TangoCameraIntrinsics.TANGO_CAMERA_DEPTH);
+
+		camCx = camIntrins.cx;
+		camCy = camIntrins.cy;
+		camFx = camIntrins.fx;
+		camFy = camIntrins.fy;
+		
+		System.out.println("camCx" + camCx);
+		System.out.println("camCy" + camCy);
+		System.out.println("camFx" + camFx);
+		System.out.println("camFy" + camFy);
+		
+		System.out.println("width: " + camIntrins.width);
+		System.out.println("height: " + camIntrins.height);
+		dataShared.createCameraTransformMatrix(camCx, camCy, camFx, camFy);
+		dataShared.setDistortion(camIntrins.distortion);
+		dataShared.createScreen(camIntrins.width, camIntrins.height);
 	}
 
 	private void setUpExtrinsics() {
@@ -215,7 +246,8 @@ public class PointCloudActivity extends Activity implements OnClickListener {
 		framePairs.add(new TangoCoordinateFramePair(
 				TangoPoseData.COORDINATE_FRAME_START_OF_SERVICE,
 				TangoPoseData.COORDINATE_FRAME_DEVICE));
-		// Listen for new Tango data
+		// Listen for new Tango data;
+
 		mTango.connectListener(framePairs, new OnTangoUpdateListener() {
 
 			@Override
@@ -245,37 +277,32 @@ public class PointCloudActivity extends Activity implements OnClickListener {
 
 			@Override
 			public void onXyzIjAvailable(final TangoXyzIjData xyzIj) {
-				// Make sure to have atomic access to TangoXyzIjData so that
-				// render loop doesn't interfere while onXYZijAvailable callback is updating
-				// the point cloud data.
 				synchronized (depthLock) {
 					mCurrentTimeStamp = (float) xyzIj.timestamp;
 					mPointCloudFrameDelta = (mCurrentTimeStamp - mXyIjPreviousTimeStamp)
 							* 1000;
 					mXyIjPreviousTimeStamp = mCurrentTimeStamp;
+
 					try {
 						TangoPoseData pointCloudPose = mTango.getPoseAtTime(mCurrentTimeStamp,
 								framePairs.get(0));
 
-						dataShared.setUniversalPose(pointCloudPose); 
+						mRenderer.getModelMatCalculator().updatePointCloudModelMatrix(
+								pointCloudPose.getTranslationAsFloats(), 
+								pointCloudPose.getRotationAsFloats());
 
-						dataShared.setPose(pointCloudPose); 
-
-						mPointCount = xyzIj.xyzCount;
 						if(!mRenderer.isValid()){
 							return;
 						}
-
+						
+						mPointCount = xyzIj.xyzCount;
+						dataShared.setPose(pointCloudPose); 
 						dataShared.setXyzijCoord(xyzIj.xyz);
+						dataShared.updateLastKPointClouds(1);
 
-						dataShared.updateLastKPointClouds(10);
+						mRenderer.getPointCloud().UpdatePoints(dataShared.getLastKPointClouds()); 
+//						dataShared.convertTo2D(xyzIj.xyz);
 
-						mRenderer.getPointCloud().UpdatePoints(dataShared.getLastKPointClouds()); // Updates the point-cloud of type FloatBuffer
-						mRenderer.getModelMatCalculator().updatePointCloudModelMatrix( // Recalculates the matrix with the new point-cloud
-								pointCloudPose.getTranslationAsFloats(), 
-								pointCloudPose.getRotationAsFloats());   // Parameters are the rotation and translation of current pose
-						mRenderer.getPointCloud().setModelMatrix(
-								mRenderer.getModelMatCalculator().getPointCloudModelMatrixCopy());
 
 					} catch (TangoErrorException e) {;
 				   
@@ -313,7 +340,7 @@ public class PointCloudActivity extends Activity implements OnClickListener {
 					}
 
 					if ((dataShared.isXyzSameAsPrevious() || dataShared.isPoseSameAsPrevious()) ) {
-						//merge currentXyzIf, currentPose into SDF
+						// TODO: merge currentXyzIf, currentPose into SDF
 					}
 				} catch (TangoErrorException e) {
 					Toast.makeText(getApplicationContext(), R.string.TangoError,
@@ -325,66 +352,4 @@ public class PointCloudActivity extends Activity implements OnClickListener {
 
 	@Override
 	public void onClick(View v) { }
-	/**
-	private void startUIThread() {
-        new Thread(new Runnable() {
-            final DecimalFormat threeDec = new DecimalFormat("0.000"); 
-
-            @Override
-            public void run() {
-                while (true) {
-                    try {
-                        Thread.sleep(UPDATE_INTERVAL_MS) ;
-                        // Update the UI with TangoPose information
-                        runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                synchronized (poseLock) {
-                                    if (mPose == null) {
-                                        return; 
-                                    }
-                                    String translationString = "["
-                                            + threeDec.format(mPose.translation[0]) + ", "
-                                            + threeDec.format(mPose.translation[1]) + ", "
-                                            + threeDec.format(mPose.translation[2]) + "] ";
-                                    String quaternionString = "["
-                                            + threeDec.format(mPose.rotation[0]) + ", "
-                                            + threeDec.format(mPose.rotation[1]) + ", "
-                                            + threeDec.format(mPose.rotation[2]) + ", "
-                                            + threeDec.format(mPose.rotation[3]) + "] "; 
-
-                                    // Display pose data on screen in TextViews
-                                    mPoseTextView.setText(translationString); 
-                                    mQuatTextView.setText(quaternionString); 
-                                    mPoseCountTextView.setText(Integer.toString(count));
-                                    mDeltaTextView.setText(threeDec.format(mDeltaTime)); 
-                                    if (mPose.statusCode == TangoPoseData.POSE_VALID) {
-                                        mPoseStatusTextView.setText(R.string.pose_valid); 
-                                    } else if (mPose.statusCode == TangoPoseData.POSE_INVALID) {
-                                        mPoseStatusTextView.setText(R.string.pose_invalid);
-                                    } else if (mPose.statusCode == TangoPoseData.POSE_INITIALIZING) {
-                                        mPoseStatusTextView.setText(R.string.pose_initializing) ;
-                                    } else if (mPose.statusCode == TangoPoseData.POSE_UNKNOWN) {
-                                        mPoseStatusTextView.setText(R.string.pose_unknown) ;
-                                    }
-                                }
-                                synchronized (depthLock) {
-                                    // Display number of points in the point cloud
-                                    mPointCountTextView.setText(Integer.toString(mPointCount)) ;
-                                    mFrequencyTextView.setText(""
-                                            + threeDec.format(mPointCloudFrameDelta)) ;
-                                    mAverageZTextView.setText(""
-                                            + threeDec.format(mRenderer.getPointCloud()
-                                                    .getAverageZ())) ;
-                                }
-                            }
-                        }) ;
-                    } catch (InterruptedException e) {
-                        e.printStackTrace() ;
-                    }
-                }
-            }
-        }).start() ;
-    }
-    */
 }
